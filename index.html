@@ -10,6 +10,40 @@
     <!-- Importação do MindAR -->
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.0/dist/mindar-image-aframe.prod.js"></script>
 
+   <!-- NOVO: Script personalizado corrigido com delay de 1ms -->
+    <script>
+      AFRAME.registerComponent('atrasar-ocultacao', {
+        schema: {
+          tempo: { type: 'number', default: 3000 } 
+        },
+        init: function () {
+          let temporizador = null;
+          
+          this.el.addEventListener('targetFound', () => {
+            clearTimeout(temporizador);
+            // Garante que fique visível quando encontra, sobrepondo o MindAR
+            setTimeout(() => {
+              this.el.object3D.visible = true;
+            }, 1);
+          });
+
+          this.el.addEventListener('targetLost', () => {
+            // Este atraso de 1ms é o "pulo do gato". Ele espera o MindAR tentar 
+            // esconder o objeto, e imediatamente manda mostrar de novo.
+            setTimeout(() => {
+              this.el.object3D.visible = true;
+            }, 1);
+            
+            // Inicia a contagem real de 5000ms que você definiu no HTML. 
+            // Quando o tempo acabar, esconde tudo definitivamente.
+            temporizador = setTimeout(() => {
+              this.el.object3D.visible = false;
+            }, this.data.tempo);
+          });
+        }
+      });
+    </script>
+
     <style>
       body { margin: 0; overflow: hidden; }
     </style>
@@ -31,7 +65,11 @@
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0">
+        <!-- 
+        NOVO: Adicionamos o atributo atrasar-ocultacao="tempo: 3000" na entidade.
+        Isso conecta o script que criamos lá em cima a este agrupamento 3D.
+        -->
+      <a-entity mindar-image-target="targetIndex: 0" atrasar-ocultacao="tempo: 3000">
         
         <!-- A imagem 2D projetada -->
         <a-image 
