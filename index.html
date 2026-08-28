@@ -60,9 +60,11 @@
       <a-assets>
         <img id="florAsset" src="./flor.png" />
         <!-- NOVO: Apontando para o seu arquivo .glb -->
-        <a-asset-item id="terrenoGLB" src="./vale_low_poly.glb"></a-asset-item>
-        <a-asset-item id="florGLB" src="./25ArtFlor_passflora_003 decimate COR.glb"></a-asset-item>
-        <a-asset-item id="flor2GLB" src="./25ArtFlor_hibisco_003 decimate wireframe COR.glb"></a-asset-item>
+        <!-- <a-asset-item id="terrenoGLB" src="./vale_low_poly.glb"></a-asset-item> -->
+        <a-asset-item id="passfloraGLB" src="./25ArtFlor_passflora_003 decimate COR.glb"></a-asset-item>
+        <a-asset-item id="hibisco_wireGLB" src="./25ArtFlor_hibisco_009_decimate_wireframe_join_achatado.glb"></a-asset-item>
+        <a-asset-item id="quaresmeiraGLB" src="./quaresmeira 009 cor_01.glb"></a-asset-item>
+        <a-asset-item id="paisagemGLB" src="./25Art_paisagem_SacraFamilia_Tingua_016a_decimate_wireframe.glb"></a-asset-item>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -74,6 +76,7 @@
       <a-entity mindar-image-target="targetIndex: 0" atrasar-ocultacao="tempo: 3000">
         
         <!-- A imagem 2D projetada -->
+        <!--
         <a-image 
           src="#florAsset" 
           position="0 0 0" 
@@ -81,31 +84,49 @@
           width="1" 
           rotation="0 0 0">
         </a-image>
+        -->
 
         <!-- 
           NOVO: O Modelo 3D em GLB usando gltf-model 
           O atributo material foi removido, pois o .glb já possui suas próprias cores e materiais.
         -->
+        <!-->
         <a-entity 
           gltf-model="#terrenoGLB" 
           position="0 0 0.9" 
           scale="0.3 0.3 0.3" 
           rotation="0 0 0">
         </a-entity>
+        -->
 
          <a-entity
-          gltf-model="#florGLB"
-          position="0 1 1"
-          scale="0.01 0.01 0.01"
+          gltf-model="#paisagemGLB"
+          position="0 0 0.5"
+          scale="0.001 0.001 0.001"
+          rotation="90 0 0">
+        </a-entity>
+        
+        <a-entity
+          gltf-model="#passfloraGLB"
+          position="0 -0.5 1"
+          scale="0.003 0.003 0.003"
           rotation="90 0 0">
         </a-entity>
 
         <a-entity
-          gltf-model="#flor2GLB"
-          position="0 -0.5 1"
-          scale="0.3 0.3 0.3"
+          gltf-model="#hibisco_wireGLB"
+          position="0 0 1"
+          scale="0.1 0.1 0.1"
           rotation="90 0 0">
         </a-entity>
+
+        <a-entity
+          gltf-model="#quaresmeiraGLB"
+          position="0 -1 1"
+          scale="0.1 0.1 0.1"
+          rotation="90 0 0">
+        </a-entity>
+
 
      <!-- Texto com acentos e fonte DejaVu -->
         <a-text
