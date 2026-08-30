@@ -44,6 +44,72 @@
       });
     </script>
 
+    <!-- NOVO SCRIPT: Rotação por Toque (Corrigido para sincronização de eixos) -->
+    <script>
+      AFRAME.registerComponent('rotacao-toque', {
+        schema: {
+          velocidade: { type: 'number', default: 0.5 },
+          eixo: { type: 'string', default: 'z' } // NOVO: Permite escolher x, y ou z no HTML
+        },
+        init: function () {
+          this.isDragging = false;
+          this.previousX = 0;
+
+          this.onPointerDown = this.onPointerDown.bind(this);
+          this.onPointerMove = this.onPointerMove.bind(this);
+          this.onPointerUp = this.onPointerUp.bind(this);
+
+          window.addEventListener('mousedown', this.onPointerDown);
+          window.addEventListener('touchstart', this.onPointerDown, { passive: true });
+          
+          window.addEventListener('mousemove', this.onPointerMove);
+          window.addEventListener('touchmove', this.onPointerMove, { passive: true });
+          
+          window.addEventListener('mouseup', this.onPointerUp);
+          window.addEventListener('touchend', this.onPointerUp);
+        },
+        onPointerDown: function (event) {
+          this.isDragging = true;
+          // Verificação mais segura para telas touch
+          this.previousX = event.type.includes('touch') ? event.touches[0].clientX : event.clientX;
+        },
+        onPointerMove: function (event) {
+          if (!this.isDragging) return;
+
+          let currentX = event.type.includes('touch') ? event.touches[0].clientX : event.clientX;
+          let deltaX = currentX - this.previousX;
+
+          // Lê a rotação atual diretamente do componente HTML para não haver conflito
+          let rot = this.el.getAttribute('rotation');
+          
+          // Aplica a rotação no eixo que você escolheu
+          if (this.data.eixo === 'x') {
+            rot.x += deltaX * this.data.velocidade;
+          } else if (this.data.eixo === 'y') {
+            rot.y += deltaX * this.data.velocidade;
+          } else {
+            rot.z += deltaX * this.data.velocidade;
+          }
+
+          // Devolve a nova rotação para o objeto
+          this.el.setAttribute('rotation', rot);
+
+          this.previousX = currentX;
+        },
+        onPointerUp: function () {
+          this.isDragging = false;
+        },
+        remove: function () {
+          window.removeEventListener('mousedown', this.onPointerDown);
+          window.removeEventListener('touchstart', this.onPointerDown);
+          window.removeEventListener('mousemove', this.onPointerMove);
+          window.removeEventListener('touchmove', this.onPointerMove);
+          window.removeEventListener('mouseup', this.onPointerUp);
+          window.removeEventListener('touchend', this.onPointerUp);
+        }
+      });
+    </script>
+
     <style>
       body { margin: 0; overflow: hidden; }
     </style>
@@ -61,10 +127,10 @@
         <img id="florAsset" src="./flor.png" />
         <!-- NOVO: Apontando para o seu arquivo .glb -->
         <!-- <a-asset-item id="terrenoGLB" src="./vale_low_poly.glb"></a-asset-item> -->
-        <a-asset-item id="passfloraGLB" src="./25ArtFlor_passflora_003 decimate COR.glb"></a-asset-item>
-        <a-asset-item id="hibisco_wireGLB" src="./25ArtFlor_hibisco_009_decimate_wireframe_join_achatado.glb"></a-asset-item>
-        <a-asset-item id="quaresmeiraGLB" src="./quaresmeira 009 cor_01.glb"></a-asset-item>
-        <a-asset-item id="paisagemGLB" src="./25Art_paisagem_SacraFamilia_Tingua_016a_decimate_wireframe.glb"></a-asset-item>
+        <!-- <a-asset-item id="passfloraGLB" src="./25ArtFlor_passflora_003 decimate COR.glb"></a-asset-item> -->
+        <!-- <a-asset-item id="hibisco_wireGLB" src="./25ArtFlor_hibisco_009_decimate_wireframe_join_achatado.glb"></a-asset-item> -->
+        <a-asset-item id="quaresmeiraGLB" src="./quaresmeira_wireframe.glb"></a-asset-item>
+        <!-- <a-asset-item id="paisagemGLB" src="./25Art_paisagem_SacraFamilia_Tingua_016a_decimate_wireframe.glb"></a-asset-item> -->
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -90,7 +156,7 @@
           NOVO: O Modelo 3D em GLB usando gltf-model 
           O atributo material foi removido, pois o .glb já possui suas próprias cores e materiais.
         -->
-        <!-->
+        <!--
         <a-entity 
           gltf-model="#terrenoGLB" 
           position="0 0 0.9" 
@@ -98,35 +164,38 @@
           rotation="0 0 0">
         </a-entity>
         -->
-
+        <!--
          <a-entity
           gltf-model="#paisagemGLB"
           position="0 0 0.5"
           scale="0.001 0.001 0.001"
           rotation="90 0 0">
         </a-entity>
-        
+        -->
+        <!--
         <a-entity
           gltf-model="#passfloraGLB"
           position="0 -0.5 1"
           scale="0.003 0.003 0.003"
           rotation="90 0 0">
         </a-entity>
-
+        -->
+        <!--
         <a-entity
           gltf-model="#hibisco_wireGLB"
           position="0 0 1"
           scale="0.1 0.1 0.1"
           rotation="90 0 0">
         </a-entity>
-
-        <a-entity
+        -->
+        
+       <a-entity
           gltf-model="#quaresmeiraGLB"
-          position="-0.5 -0.5 1"
-          scale="0.1 0.1 0.1"
+          rotacao-toque="eixo: z; velocidade: 0.8" 
+          position="0 0 0.1"
+          scale="0.3 0.3 0.3"
           rotation="90 0 0">
         </a-entity>
-
 
      <!-- Texto com acentos e fonte DejaVu -->
         <a-text
