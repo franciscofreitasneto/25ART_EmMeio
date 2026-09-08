@@ -44,16 +44,20 @@
       });
     </script>
 
-    <!-- NOVO SCRIPT: Rotação por Toque (Corrigido para sincronização de eixos) -->
+<!-- NOVO SCRIPT: Rotação por Toque (Dois Eixos - Horizontal e Vertical) -->
     <script>
       AFRAME.registerComponent('rotacao-toque', {
         schema: {
           velocidade: { type: 'number', default: 0.5 },
-          eixo: { type: 'string', default: 'z' } // NOVO: Permite escolher x, y ou z no HTML
+          // Define qual eixo 3D gira quando o dedo move para os lados
+          eixoHorizontal: { type: 'string', default: 'z' }, 
+          // Define qual eixo 3D gira quando o dedo move para cima/baixo
+          eixoVertical: { type: 'string', default: 'x' }    
         },
         init: function () {
           this.isDragging = false;
           this.previousX = 0;
+          this.previousY = 0; // Variável para guardar a posição Y do dedo
 
           this.onPointerDown = this.onPointerDown.bind(this);
           this.onPointerMove = this.onPointerMove.bind(this);
@@ -70,31 +74,39 @@
         },
         onPointerDown: function (event) {
           this.isDragging = true;
-          // Verificação mais segura para telas touch
           this.previousX = event.type.includes('touch') ? event.touches[0].clientX : event.clientX;
+          this.previousY = event.type.includes('touch') ? event.touches[0].clientY : event.clientY;
         },
         onPointerMove: function (event) {
           if (!this.isDragging) return;
 
+          // Pega as posições X e Y atuais do dedo/mouse
           let currentX = event.type.includes('touch') ? event.touches[0].clientX : event.clientX;
+          let currentY = event.type.includes('touch') ? event.touches[0].clientY : event.clientY;
+          
+          // Calcula a diferença de movimento
           let deltaX = currentX - this.previousX;
+          let deltaY = currentY - this.previousY;
 
-          // Lê a rotação atual diretamente do componente HTML para não haver conflito
           let rot = this.el.getAttribute('rotation');
           
-          // Aplica a rotação no eixo que você escolheu
-          if (this.data.eixo === 'x') {
-            rot.x += deltaX * this.data.velocidade;
-          } else if (this.data.eixo === 'y') {
-            rot.y += deltaX * this.data.velocidade;
-          } else {
-            rot.z += deltaX * this.data.velocidade;
-          }
+          // 1. Aplica a rotação do arraste horizontal
+          if (this.data.eixoHorizontal === 'x') rot.x += deltaX * this.data.velocidade;
+          else if (this.data.eixoHorizontal === 'y') rot.y += deltaX * this.data.velocidade;
+          else if (this.data.eixoHorizontal === 'z') rot.z += deltaX * this.data.velocidade;
 
-          // Devolve a nova rotação para o objeto
+          // 2. Aplica a rotação do arraste vertical
+          // Nota: Pode ser necessário multiplicar deltaY por -1 dependendo se a inclinação 
+          // parecer "invertida" em relação ao movimento do seu dedo.
+          if (this.data.eixoVertical === 'x') rot.x += deltaY * this.data.velocidade;
+          else if (this.data.eixoVertical === 'y') rot.y += deltaY * this.data.velocidade;
+          else if (this.data.eixoVertical === 'z') rot.z += deltaY * this.data.velocidade;
+
           this.el.setAttribute('rotation', rot);
 
+          // Atualiza as posições anteriores para o próximo quadro
           this.previousX = currentX;
+          this.previousY = currentY;
         },
         onPointerUp: function () {
           this.isDragging = false;
@@ -110,105 +122,94 @@
       });
     </script>
 
+    <!-- NOVO SCRIPT: Tocar áudio no primeiro toque -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const audio = document.getElementById("audioFundo");
+        
+        // Função que tenta tocar o áudio
+        const iniciarAudio = () => {
+          if (audio.paused) {
+            audio.play().catch(error => {
+              console.log("O navegador bloqueou o áudio. Esperando interação.");
+            });
+          }
+        };
+
+        // Dispara no clique do mouse (PC) ou no toque (Celular)
+        window.addEventListener('click', iniciarAudio, { once: true });
+        window.addEventListener('touchstart', iniciarAudio, { once: true });
+      });
+    </script>
+
     <style>
       body { margin: 0; overflow: hidden; }
     </style>
   </head>
   <body>
+    <!-- NOVO: Tag de áudio (o arquivo deve estar na sua pasta do projeto) -->
+    <audio id="audioFundo" src="./objetos/passarinho_e_chuva.mp3" loop preload="auto"></audio>
 
     <a-scene 
-      mindar-image="imageTargetSrc: ./targets.mind;" 
+      mindar-image="imageTargetSrc: ./marcadores/targets.mind;" 
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false" 
       device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <img id="florAsset" src="./flor.png" />
-        <!-- NOVO: Apontando para o seu arquivo .glb -->
-        <!-- <a-asset-item id="terrenoGLB" src="./vale_low_poly.glb"></a-asset-item> -->
-        <!-- <a-asset-item id="passfloraGLB" src="./25ArtFlor_passflora_003 decimate COR.glb"></a-asset-item> -->
-        <!-- <a-asset-item id="hibisco_wireGLB" src="./25ArtFlor_hibisco_009_decimate_wireframe_join_achatado.glb"></a-asset-item> -->
-        <a-asset-item id="quaresmeiraGLB" src="./quaresmeira_wireframe.glb"></a-asset-item>
-        <!-- <a-asset-item id="paisagemGLB" src="./25Art_paisagem_SacraFamilia_Tingua_016a_decimate_wireframe.glb"></a-asset-item> -->
+        <a-asset-item id="relevoGLB" src="./objetos/vale_do_cafe.glb"></a-asset-item> <!-- Colocando o relevo do vale do café -->
+        <a-asset-item id="bouganvilleGLB" src="./objetos/bouganville.glb"></a-asset-item> <!-- Colocando o objeto bouganville -->
+        <a-asset-item id="ipeGLB" src="./objetos/ipe.glb"></a-asset-item> <!-- Colocando o objeto ipe -->
+        <a-asset-item id="quaresmeiraGLB" src="./objetos/quaresmeira.glb"></a-asset-item> <!-- Colocando o objeto quaresmeira -->
+        <a-asset-item id="pata_de_vacaGLB" src="./objetos/pata_de_vaca.glb"></a-asset-item> <!-- Colocando o objeto pata de vaca -->
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <!-- 
-        NOVO: Adicionamos o atributo atrasar-ocultacao="tempo: 3000" na entidade.
-        Isso conecta o script que criamos lá em cima a este agrupamento 3D.
-        -->
-      <a-entity mindar-image-target="targetIndex: 0" atrasar-ocultacao="tempo: 3000">
-        
-        <!-- A imagem 2D projetada -->
-        <!--
-        <a-image 
-          src="#florAsset" 
-          position="0 0 0" 
-          height="1" 
-          width="1" 
-          rotation="0 0 0">
-        </a-image>
-        -->
+      <a-entity mindar-image-target="targetIndex: 2" atrasar-ocultacao="tempo: 3000"> <!-- Marcador 2 -->
+       <a-entity
+          gltf-model="#relevoGLB"
+          rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
+          position="0 0 0.1"
+          scale="0.005 0.005 0.005"
+          rotation="30 0 0">
+        </a-entity>
+      </a-entity>
 
-        <!-- 
-          NOVO: O Modelo 3D em GLB usando gltf-model 
-          O atributo material foi removido, pois o .glb já possui suas próprias cores e materiais.
-        -->
-        <!--
-        <a-entity 
-          gltf-model="#terrenoGLB" 
-          position="0 0 0.9" 
-          scale="0.3 0.3 0.3" 
-          rotation="0 0 0">
+
+      <a-entity mindar-image-target="targetIndex: 0" atrasar-ocultacao="tempo: 3000"> <!-- Marcador 0 -->
+       <a-entity
+          gltf-model="#bouganvilleGLB"
+          rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
+          position="0.7 0.7 0.1"
+          scale="0.5 0.5 0.5"
+          rotation="30 0 0">
         </a-entity>
-        -->
-        <!--
-         <a-entity
-          gltf-model="#paisagemGLB"
-          position="0 0 0.5"
-          scale="0.001 0.001 0.001"
-          rotation="90 0 0">
-        </a-entity>
-        -->
-        <!--
         <a-entity
-          gltf-model="#passfloraGLB"
-          position="0 -0.5 1"
-          scale="0.003 0.003 0.003"
-          rotation="90 0 0">
+          gltf-model="#ipeGLB"
+          rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
+          position="-0.7 -0.7 0.1"
+          scale="0.5 0.5 0.5"
+          rotation="30 0 0">
         </a-entity>
-        -->
-        <!--
-        <a-entity
-          gltf-model="#hibisco_wireGLB"
-          position="0 0 1"
-          scale="0.1 0.1 0.1"
-          rotation="90 0 0">
-        </a-entity>
-        -->
-        
+      </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 1" atrasar-ocultacao="tempo: 3000"> <!-- Marcador 1 -->
        <a-entity
           gltf-model="#quaresmeiraGLB"
-          rotacao-toque="eixo: z; velocidade: 0.8" 
-          position="0 0 0.1"
-          scale="0.3 0.3 0.3"
-          rotation="90 0 0">
+          rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
+          position="0.7 0.7 0.1"
+          scale="0.5 0.5 0.5"
+          rotation="30 0 0">
         </a-entity>
-
-     <!-- Texto com acentos e fonte DejaVu -->
-        <a-text
-          value="O Vale do Café foi o maior produtor\nmundial de café no século XIX.\nSuas fazendas coloniais narram a grandiosidade\ne as contradições do Brasil Império.\nHoje, é um polo turístico de história e cultura."
-          font="dejavu"
-          color="blue"
-          position="0 -0.7 0.2"
-          align="center"
-          width="2"
-          wrap-count="35"
-        >
-        </a-text>
-
+         <a-entity
+          gltf-model="#pata_de_vacaGLB"
+          rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
+          position="-0.7 -0.7 0.1"
+          scale="0.5 0.5 0.5"
+          rotation="30 0 0">
+        </a-entity>
       </a-entity>
 
     </a-scene>
