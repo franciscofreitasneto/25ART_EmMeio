@@ -142,6 +142,71 @@
       });
     </script>
 
+    <!-- NOVO SCRIPT: Controle de Vídeo (Play/Pause automático) -->
+    <script>
+      AFRAME.registerComponent('controle-video', {
+        schema: {
+          idVideo: { type: 'string' } // Recebe o ID do vídeo que criarmos no HTML
+        },
+        init: function () {
+          let video = document.querySelector(this.data.idVideo);
+          
+          // Quando encontra o marcador, dá o play no vídeo
+          this.el.addEventListener('targetFound', () => {
+            if (video) video.play();
+          });
+
+          // Quando perde o marcador, pausa o vídeo
+          this.el.addEventListener('targetLost', () => {
+            if (video) video.pause();
+          });
+        }
+      });
+    </script>
+
+    <!-- NOVO SCRIPT: Shader WebGL para remover fundo preto do vídeo -->
+    <script>
+      AFRAME.registerShader('remover-preto', {
+        schema: {
+          src: { type: 'map' }
+        },
+        init: function (data) {
+          // Cria a textura 3D a partir do seu vídeo
+          const videoTextura = new THREE.VideoTexture(data.src);
+          videoTextura.minFilter = THREE.LinearFilter;
+          
+          this.material = new THREE.ShaderMaterial({
+            uniforms: {
+              map: { type: 't', value: videoTextura }
+            },
+            vertexShader: `
+              varying vec2 vUv;
+              void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: `
+              uniform sampler2D map;
+              varying vec2 vUv;
+              void main() {
+                vec4 cor = texture2D(map, vUv);
+                // Verifica se a cor é quase preta (abaixo do limiar 0.1)
+                if (cor.r < 0.1 && cor.g < 0.1 && cor.b < 0.1) {
+                  // Descarta o pixel (deixa 100% transparente)
+                  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+                } else {
+                  // Mantém a cor original do pixel
+                  gl_FragColor = cor;
+                }
+              }
+            `,
+            transparent: true // Informa ao A-Frame que este material possui transparência
+          });
+        }
+      });
+    </script>
+
     <style>
       body { margin: 0; overflow: hidden; }
     </style>
@@ -163,33 +228,42 @@
         <a-asset-item id="ipeGLB" src="./objetos/ipe.glb"></a-asset-item> <!-- Colocando o objeto ipe -->
         <a-asset-item id="quaresmeiraGLB" src="./objetos/quaresmeira.glb"></a-asset-item> <!-- Colocando o objeto quaresmeira -->
         <a-asset-item id="pata_de_vacaGLB" src="./objetos/pata_de_vaca.glb"></a-asset-item> <!-- Colocando o objeto pata de vaca -->
+        <video id="texto1" src="./objetos/texto1.mp4" playsinline webkit-playsinline loop muted crossorigin="anonymous"></video>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 2" atrasar-ocultacao="tempo: 3000"> <!-- Marcador 2 -->
+      <a-entity mindar-image-target="targetIndex: 2" atrasar-ocultacao="tempo: 3000" controle-video="idVideo: #texto1"> <!-- Marcador 2 -->
        <a-entity
           gltf-model="#relevoGLB"
           rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
-          position="0 0 0.1"
+          position="0 0 0"
           scale="0.005 0.005 0.005"
-          rotation="45 45 45">
+          rotation="10 10 10">
         </a-entity>
-      </a-entity>
 
+        <!-- Tela forçando o uso do shader personalizado para remover o preto -->
+        <a-entity 
+          geometry="primitive: plane; width: 0.5625; height: 1"
+          material="shader: remover-preto; src: #texto1"
+          position="0 0 0" 
+          scale="2.5 2.5 2.5"
+          rotation="0 0 0">
+        </a-entity>
+      </a-entity>        
 
       <a-entity mindar-image-target="targetIndex: 0" atrasar-ocultacao="tempo: 3000"> <!-- Marcador 0 -->
        <a-entity
           gltf-model="#bouganvilleGLB"
           rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
-          position="0.7 0.7 0.1"
+          position="0.3 0.3 0"
           scale="0.5 0.5 0.5"
           rotation="30 0 0">
         </a-entity>
         <a-entity
           gltf-model="#ipeGLB"
           rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
-          position="-0.7 -0.7 0.1"
+          position="-0.3 -0.3 0"
           scale="0.5 0.5 0.5"
           rotation="30 0 0">
         </a-entity>
@@ -199,15 +273,15 @@
        <a-entity
           gltf-model="#quaresmeiraGLB"
           rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
-          position="0.7 0.7 0.1"
+          position="0.3 0.3 0"
           scale="0.5 0.5 0.5"
           rotation="30 0 0">
         </a-entity>
          <a-entity
           gltf-model="#pata_de_vacaGLB"
           rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
-          position="-0.7 -0.7 0.1"
-          scale="0.5 0.5 0.5"
+          position="-0.3 -0.3 0"
+          scale="0.3 0.3 0.3"
           rotation="30 0 0">
         </a-entity>
       </a-entity>
