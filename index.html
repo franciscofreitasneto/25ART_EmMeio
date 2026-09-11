@@ -215,8 +215,10 @@
     <!-- NOVO: Tag de áudio (o arquivo deve estar na sua pasta do projeto) -->
     <audio id="audioFundo" src="./objetos/passarinho_e_chuva.mp3" loop preload="auto"></audio>
 
+    
     <a-scene 
-      mindar-image="imageTargetSrc: ./marcadores/targets.mind;" 
+      musica-fundo
+      mindar-image="imageTargetSrc: ./marcadores/targets.mind; filterMinCF: 0.0001; filterBeta: 0.01;" 
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false" 
