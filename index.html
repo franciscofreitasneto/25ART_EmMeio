@@ -44,20 +44,25 @@
       });
     </script>
 
-<!-- NOVO SCRIPT: Rotação por Toque (Dois Eixos - Horizontal e Vertical) -->
+<!-- NOVO SCRIPT: Rotação por Toque (Com limites de ângulo e velocidade) -->
     <script>
       AFRAME.registerComponent('rotacao-toque', {
         schema: {
           velocidade: { type: 'number', default: 0.5 },
-          // Define qual eixo 3D gira quando o dedo move para os lados
           eixoHorizontal: { type: 'string', default: 'z' }, 
-          // Define qual eixo 3D gira quando o dedo move para cima/baixo
-          eixoVertical: { type: 'string', default: 'x' }    
+          eixoVertical: { type: 'string', default: 'x' },
+          // NOVO: Parâmetros para limitar o giro (em graus)
+          limitarVertical: { type: 'boolean', default: false },
+          minVertical: { type: 'number', default: -45 },
+          maxVertical: { type: 'number', default: 45 },
+          limitarHorizontal: { type: 'boolean', default: false },
+          minHorizontal: { type: 'number', default: -45 },
+          maxHorizontal: { type: 'number', default: 45 }
         },
         init: function () {
           this.isDragging = false;
           this.previousX = 0;
-          this.previousY = 0; // Variável para guardar a posição Y do dedo
+          this.previousY = 0;
 
           this.onPointerDown = this.onPointerDown.bind(this);
           this.onPointerMove = this.onPointerMove.bind(this);
@@ -80,31 +85,43 @@
         onPointerMove: function (event) {
           if (!this.isDragging) return;
 
-          // Pega as posições X e Y atuais do dedo/mouse
           let currentX = event.type.includes('touch') ? event.touches[0].clientX : event.clientX;
           let currentY = event.type.includes('touch') ? event.touches[0].clientY : event.clientY;
           
-          // Calcula a diferença de movimento
           let deltaX = currentX - this.previousX;
           let deltaY = currentY - this.previousY;
 
           let rot = this.el.getAttribute('rotation');
           
+          // Função matemática que impede o número de passar do mínimo ou do máximo
+          const travar = (valor, min, max) => Math.min(Math.max(valor, min), max);
+
           // 1. Aplica a rotação do arraste horizontal
-          if (this.data.eixoHorizontal === 'x') rot.x += deltaX * this.data.velocidade;
-          else if (this.data.eixoHorizontal === 'y') rot.y += deltaX * this.data.velocidade;
-          else if (this.data.eixoHorizontal === 'z') rot.z += deltaX * this.data.velocidade;
+          if (this.data.eixoHorizontal === 'x') {
+            rot.x += deltaX * this.data.velocidade;
+            if (this.data.limitarHorizontal) rot.x = travar(rot.x, this.data.minHorizontal, this.data.maxHorizontal);
+          } else if (this.data.eixoHorizontal === 'y') {
+            rot.y += deltaX * this.data.velocidade;
+            if (this.data.limitarHorizontal) rot.y = travar(rot.y, this.data.minHorizontal, this.data.maxHorizontal);
+          } else if (this.data.eixoHorizontal === 'z') {
+            rot.z += deltaX * this.data.velocidade;
+            if (this.data.limitarHorizontal) rot.z = travar(rot.z, this.data.minHorizontal, this.data.maxHorizontal);
+          }
 
           // 2. Aplica a rotação do arraste vertical
-          // Nota: Pode ser necessário multiplicar deltaY por -1 dependendo se a inclinação 
-          // parecer "invertida" em relação ao movimento do seu dedo.
-          if (this.data.eixoVertical === 'x') rot.x += deltaY * this.data.velocidade;
-          else if (this.data.eixoVertical === 'y') rot.y += deltaY * this.data.velocidade;
-          else if (this.data.eixoVertical === 'z') rot.z += deltaY * this.data.velocidade;
+          if (this.data.eixoVertical === 'x') {
+            rot.x += deltaY * this.data.velocidade;
+            if (this.data.limitarVertical) rot.x = travar(rot.x, this.data.minVertical, this.data.maxVertical);
+          } else if (this.data.eixoVertical === 'y') {
+            rot.y += deltaY * this.data.velocidade;
+            if (this.data.limitarVertical) rot.y = travar(rot.y, this.data.minVertical, this.data.maxVertical);
+          } else if (this.data.eixoVertical === 'z') {
+            rot.z += deltaY * this.data.velocidade;
+            if (this.data.limitarVertical) rot.z = travar(rot.z, this.data.minVertical, this.data.maxVertical);
+          }
 
           this.el.setAttribute('rotation', rot);
 
-          // Atualiza as posições anteriores para o próximo quadro
           this.previousX = currentX;
           this.previousY = currentY;
         },
@@ -121,7 +138,6 @@
         }
       });
     </script>
-
     <!-- NOVO SCRIPT: Tocar áudio no primeiro toque -->
     <script>
       document.addEventListener("DOMContentLoaded", function() {
@@ -238,7 +254,7 @@
       <a-entity mindar-image-target="targetIndex: 2" atrasar-ocultacao="tempo: 3000" controle-video="idVideo: #texto1"> <!-- Marcador 2 -->
        <a-entity
           gltf-model="#relevoGLB"
-          rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.8"
+          rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.2; limitarVertical: true; minVertical: 0; maxVertical: 60"
           position="0 0 0"
           scale="0.005 0.005 0.005"
           rotation="10 10 10">
