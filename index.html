@@ -255,16 +255,16 @@
        <a-entity
           gltf-model="#relevoGLB"
           rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.1; limitarVertical: true; minVertical: -10; maxVertical: 10, minHorizontal: -10; maxHorizontal: 10"
-          position="0 0 0"
+          position="0 -1 0"
           scale="0.005 0.005 0.005"
           rotation="0 0 0">
         </a-entity>
 
         <!-- Tela forçando o uso do shader personalizado para remover o preto -->
         <a-entity 
-          geometry="primitive: plane; width: 0.5625; height: 1"
+          geometry="primitive: plane; width: 1.5625; height: 1"
           material="shader: remover-preto; src: #texto1"
-          position="0 -1.5 0.1" 
+          position="0 0 0.1" 
           scale="1 1 1"
           rotation="0 0 0">
         </a-entity>
