@@ -223,6 +223,79 @@
       });
     </script>
 
+<!-- NOVO SCRIPT: Multiplicador Aleatório (Inicia apenas com toque) -->
+    <script>
+      AFRAME.registerComponent('multiplicador-aleatorio', {
+        schema: {
+          modelo: { type: 'string' },
+          quantidade: { type: 'int', default: 10 },
+          intervalo: { type: 'int', default: 1000 },
+          escala: { type: 'string', default: '0.5 0.5 0.5' },
+          rotacaoBase: { type: 'string', default: '30 0 0' },
+          areaX: { type: 'number', default: 0.8 }, 
+          areaY: { type: 'number', default: 0.8 },
+          posicaoZ: { type: 'number', default: 0.1 }
+        },
+        init: function () {
+          this.contador = 0;
+          this.temporizador = null;
+          this.marcadorVisivel = false; // Guarda o estado da câmera
+          this.geracaoIniciada = false; // Trava para não iniciar duas vezes
+
+          this.criarObjeto = () => {
+            if (this.contador >= this.data.quantidade) {
+              clearInterval(this.temporizador);
+              return;
+            }
+
+            let novoObjeto = document.createElement('a-entity');
+            novoObjeto.setAttribute('gltf-model', this.data.modelo);
+            novoObjeto.setAttribute('scale', this.data.escala);
+            novoObjeto.setAttribute('rotation', this.data.rotacaoBase);
+            novoObjeto.setAttribute('rotacao-toque', 'eixoHorizontal: z; eixoVertical: x; velocidade: 0.2');
+
+            let posX = (Math.random() - 0.5) * 2 * this.data.areaX;
+            let posY = (Math.random() - 0.5) * 2 * this.data.areaY;
+            novoObjeto.setAttribute('position', `${posX} ${posY} ${this.data.posicaoZ}`);
+            
+            this.el.appendChild(novoObjeto);
+            this.contador++;
+          };
+
+          let marcador = this.el.closest('[mindar-image-target]');
+          
+          if (marcador) {
+            marcador.addEventListener('targetFound', () => {
+              this.marcadorVisivel = true;
+              
+              // Se o usuário já tinha tocado antes e perdeu o marcador no meio do processo, retoma a geração
+              if (this.geracaoIniciada && this.contador < this.data.quantidade) {
+                this.temporizador = setInterval(this.criarObjeto, this.data.intervalo);
+              }
+            });
+
+            marcador.addEventListener('targetLost', () => {
+              this.marcadorVisivel = false;
+              clearInterval(this.temporizador); // Pausa a geração se a câmera desviar
+            });
+          }
+
+          // Função ativada pelo toque
+          const iniciarNoToque = () => {
+            // Só inicia se estiver apontando para a imagem, se ainda não tiver começado e não tiver atingido o limite
+            if (this.marcadorVisivel && !this.geracaoIniciada && this.contador < this.data.quantidade) {
+              this.geracaoIniciada = true; 
+              this.criarObjeto(); // Cria a primeira árvore instantaneamente ao tocar
+              this.temporizador = setInterval(this.criarObjeto, this.data.intervalo); // Inicia o relógio para as próximas
+            }
+          };
+
+          window.addEventListener('click', iniciarNoToque);
+          window.addEventListener('touchstart', iniciarNoToque, { passive: true });
+        }
+      });
+    </script>
+
     <style>
       body { margin: 0; overflow: hidden; }
     </style>
@@ -271,13 +344,18 @@
       </a-entity>        
 
       <a-entity mindar-image-target="targetIndex: 0" atrasar-ocultacao="tempo: 3000"> <!-- Marcador 0 -->
+       <a-entity 
+          multiplicador-aleatorio="modelo: #bouganvilleGLB; quantidade: 5; intervalo: 1200; areaX: 1; areaY: 1; escala: 0.2 0.2 0.2; rotacaoBase: 30 0 0">
+        </a-entity>
+
        <a-entity
           gltf-model="#bouganvilleGLB"
           rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.1"
           position="0.3 0.3 0"
-          scale="0.5 0.5 0.5"
+          scale="0.2 0.2 0.2"
           rotation="30 0 0">
         </a-entity>
+
         <a-entity
           gltf-model="#ipeGLB"
           rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.1"
@@ -288,11 +366,14 @@
       </a-entity>
 
       <a-entity mindar-image-target="targetIndex: 1" atrasar-ocultacao="tempo: 3000"> <!-- Marcador 1 -->
+       <a-entity 
+          multiplicador-aleatorio="modelo: #quaresmeiraGLB; quantidade: 5; intervalo: 1200; areaX: 1; areaY: 1; escala: 0.2 0.2 0.2; rotacaoBase: 30 0 0">
+       </a-entity>
        <a-entity
           gltf-model="#quaresmeiraGLB"
-          rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.1"
+          rotacao-toque="eixoHorizontal: z; eixoVertical: x; velocidade: 0.1"   
           position="0.3 0.3 0"
-          scale="0.5 0.5 0.5"
+          scale="0.2 0.2 0.2"
           rotation="30 0 0">
         </a-entity>
          <a-entity
